@@ -1,5 +1,5 @@
+
 ---
-# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/helm.toolkit.fluxcd.io/helmrelease_v2.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -7,26 +7,26 @@ metadata:
   namespace: cert-manager
 spec:
   interval: 5m
-  releaseName: cert-manager
   chart:
     spec:
+      # renovate: registryUrl=https://charts.jetstack.io/
       chart: cert-manager
       version: v1.19.1
       sourceRef:
         kind: HelmRepository
-        name: cert-manager-repo
+        name: jetstack-charts
         namespace: flux-system
   values:
+    global:
+      leaderElection:
+        namespace: cert-manager
     installCRDs: true
-    prometheus:
-      servicemonitor:
-        enabled: true
-    replicaCount: 1
-    extraArgs:
-      - --dns01-recursive-nameservers=1.1.1.1:53,8.8.8.8:53
-      - --dns01-recursive-nameservers-only
     podDnsPolicy: None
     podDnsConfig:
       nameservers:
-        - "1.1.1.1"
-        - "8.8.8.8"
+        - 1.1.1.1
+        - 9.9.9.9
+    prometheus:
+      enabled: true
+      servicemonitor:
+        enabled: true
