@@ -1,3 +1,21 @@
-../eks-infrastructure/.terraform.lock.hcl
-../eks-infrastructure/.terraform
-../eks-infrastructure/.terraform.tfstate
+# Terraform files
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+*.tfvars
+.terraform.tfstate.lock.info
+
+# Crash log files
+crash.log
+crash.*.log
+
+# Override files
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# CLI configuration files
+.terraformrc
+terraform.rc
