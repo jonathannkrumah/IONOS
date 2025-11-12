@@ -1,6 +1,6 @@
 resources:
 - namespace.yaml
 - helmrelease.yaml
-- secret.enc.yaml
+# - secret.enc.yaml
 - virtualservice.yaml
 # - grafanadashboard.yaml
