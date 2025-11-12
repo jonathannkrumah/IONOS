@@ -1,5 +1,5 @@
 ---
-apiVersion: helm.toolkit.fluxcd.io/v2
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
   name: kube-prometheus-stack
@@ -7,9 +7,35 @@ metadata:
 spec:
   interval: 1h
   timeout: 15m
-  chartRef:
-    kind: OCIRepository
-    name: kube-prometheus-stack
+  # FIXED: Use proper chart specification
+  chart:
+    spec:
+      chart: kube-prometheus-stack
+      # Choose ONE of the following sourceRef options:
+      
+      # Option A: HelmRepository (most common)
+      sourceRef:
+        kind: OCIRepository
+        name: kube-prometheus-stack
+        namespace: observability
+      version: "58.0.0"  # Specify exact version
+      
+      # Option B: If using OCI (less common)
+      # sourceRef:
+      #   kind: OCIRepository  
+      #   name: prometheus-oci
+      #   namespace: flux-system
+      # version: "58.0.0"
+  
+  # FIXED: Add install/upgrade configuration
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  
+  # FIXED: Remove the unsupported chartRef section
   values:
     crds:
       enabled: false
