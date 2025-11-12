@@ -1,0 +1,61 @@
+# Useful examples on how to configure Prometheus
+# * https://www.weave.works/prometheus-and-kubernetes-monitoring-your-applications/
+# * https://grafana.net/dashboards/162
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-alertrules
+  namespace: observability
+data:
+  alert.rules: |-
+    groups:
+    - name: HighErrorRate
+      rules:
+      - alert: HighErrorRate
+        expr: rate(request_duration_seconds_count{status_code="500"}[5m]) > 1
+        for: 5m
+        labels:
+          severity: slack
+        annotations:
+          summary: "High HTTP 500 error rates"
+          description: "Rate of HTTP 500 errors per 5 minutes: {{ $value }}"
+
+    - name: InstanceAlerts
+      rules:
+      - alert: InstanceDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Instance down"
+          description: "Instance {{ $labels.instance }} of job {{ $labels.job }} has been down for more than 1 minute."
+
+    - name: Node Exporter Alerts
+      rules:
+      - alert: HighMemoryUsage
+        expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage on {{ $labels.instance }}"
+          description: "Memory usage is above 80%."
+
+      - alert: HighCPUUsage
+        expr: rate(node_cpu_seconds_total{mode="idle"}[5m]) < 0.2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage on {{ $labels.instance }}"
+          description: "CPU usage is above 80%."
+
+      - alert: HighDiskUsage
+        expr: (node_filesystem_size_bytes - node_filesystem_free_bytes) / node_filesystem_size_bytes > 0.9
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High disk usage on {{ $labels.instance }}"
+          description: "Disk usage is above 90%."
