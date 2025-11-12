@@ -3,4 +3,4 @@ resources:
 - helmrelease.yaml
 - secret.enc.yaml
 - virtualservice.yaml
-- grafanadashboard.yaml
+# - grafanadashboard.yaml
