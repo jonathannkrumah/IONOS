@@ -6,7 +6,12 @@ metadata:
   labels:
     app: grafana
     component: import-dashboards
+  annotations:
+    kustomize.toolkit.fluxcd.io/prune: "disabled"
+    reconcile.fluxcd.io/ignore: "true"
 spec:
+  backoffLimit: 1
+  activeDeadlineSeconds: 600 
   template:
     metadata:
       name: grafana-import-dashboards
@@ -17,42 +22,49 @@ spec:
       initContainers:
       - name: wait-for-grafana
         image: busybox
-        command: ['sh', '-c', 'until nc -z grafana 80; do echo waiting for grafana; sleep 5; done;']
+        command:
+          ['sh', '-c', 'until nc -z grafana 80; do echo waiting for grafana; sleep 5; done;']
       containers:
       - name: grafana-import-dashboards
         image: giantswarm/tiny-tools
         command: ["/bin/sh", "-c"]
         workingDir: /opt/grafana-import-dashboards
         args:
-          - >
-            for file in *-datasource.json ; do
-              if [ -e "$file" ] ; then
-                echo "importing $file" ;
-                until curl --silent --fail --show-error \
-                  --request POST http://admin:admin@grafana/api/datasources \
-                  --header "Content-Type: application/json" \
-                  --header "Accept: application/json" \
-                  --data-binary "@$file" ; do
-                  echo "waiting for Grafana..." ;
-                  sleep 5 ;
-                done ;
-                echo "" ;
+          - |
+            set -e
+            echo "Starting Grafana dashboard import job..."
+
+            for file in *-datasource.json; do
+              [ -e "$file" ] || continue
+              echo "Importing datasource: $file"
+              code=$(curl -s -o /dev/null -w "%{http_code}" \
+                --request POST http://admin:admin@grafana/api/datasources \
+                --header "Content-Type: application/json" \
+                --data-binary "@$file")
+              if [ "$code" = "409" ]; then
+                echo "Datasource $file already exists, skipping."
+              elif [ "$code" != "200" ] && [ "$code" != "201" ]; then
+                echo "Failed to import $file (HTTP $code), exiting."
+                exit 1
               fi
-            done ;
-            for file in *-dashboard.json ; do
-              if [ -e "$file" ] ; then
-                echo "importing $file" ;
-                until curl --silent --fail --show-error \
-                  --request POST http://admin:admin@grafana/api/dashboards/import \
-                  --header "Content-Type: application/json" \
-                  --header "Accept: application/json" \
-                  --data-binary "@$file" ; do
-                  echo "waiting for Grafana..." ;
-                  sleep 5 ;
-                done ;
-                echo "" ;
+            done
+
+            for file in *-dashboard.json; do
+              [ -e "$file" ] || continue
+              echo "Importing dashboard: $file"
+              code=$(curl -s -o /dev/null -w "%{http_code}" \
+                --request POST http://admin:admin@grafana/api/dashboards/import \
+                --header "Content-Type: application/json" \
+                --data-binary "@$file")
+              if [ "$code" = "409" ]; then
+                echo "Dashboard $file already exists, skipping."
+              elif [ "$code" != "200" ] && [ "$code" != "201" ]; then
+                echo "Failed to import $file (HTTP $code), exiting."
+                exit 1
               fi
-            done ;
+            done
+
+            echo "✅ Import completed successfully."
         volumeMounts:
         - name: config-volume
           mountPath: /opt/grafana-import-dashboards
