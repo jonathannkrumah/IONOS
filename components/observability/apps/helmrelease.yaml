@@ -1,158 +1,142 @@
 ---
-apiVersion: helm.toolkit.fluxcd.io/v2beta1
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/helm.toolkit.fluxcd.io/helmrelease_v2.json
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: kube-prometheus-stack
   namespace: observability
 spec:
   interval: 1h
-  timeout: 15m
-  # FIXED: Use proper chart specification
-  chart:
-    spec:
-      chart: kube-prometheus-stack
-      # Choose ONE of the following sourceRef options:
-      
-      # Option A: HelmRepository (most common)
-      sourceRef:
-        kind: OCIRepository
-        name: kube-prometheus-stack
-        namespace: observability
-      version: "58.0.0"  # Specify exact version
-      
-      # Option B: If using OCI (less common)
-      # sourceRef:
-      #   kind: OCIRepository  
-      #   name: prometheus-oci
-      #   namespace: flux-system
-      # version: "58.0.0"
-  
-  # FIXED: Add install/upgrade configuration
+  chartRef:
+    kind: OCIRepository
+    name: kube-prometheus-stack
+    namespace: observability
   install:
     remediation:
-      retries: 3
+      retries: -1
   upgrade:
+    cleanupOnFail: true
     remediation:
       retries: 3
-  
-  # FIXED: Remove the unsupported chartRef section
   values:
-    crds:
-      enabled: false
     cleanPrometheusOperatorObjectNames: true
-
     alertmanager:
-      enabled: false
-
-    kubeApiServer:
-      enabled: true
-      serviceMonitor:
-        metricRelabelings:
-          # Drop high cardinality labels
-          - action: drop
-            sourceLabels:
-              - __name__
-            regex: (apiserver|etcd|rest_client)_request(|_sli|_slo)_duration_seconds_bucket
-          - action: drop
-            sourceLabels:
-              - __name__
-            regex: (apiserver_response_sizes_bucket|apiserver_watch_events_sizes_bucket)
-
-    kubeControllerManager:
-      enabled: false
-
+      route:
+        main:
+          enabled: true
+          hostnames:
+            - alertmanager.samcloud.online
+          parentRefs:
+            - name: external
+              namespace: observability
+              sectionName: https
+      alertmanagerSpec:
+        alertmanagerConfiguration:
+          name: alertmanager
+          global:
+            resolveTimeout: 5m
+        externalUrl: https://alertmanager.samcloud.online
+        storage:
+          volumeClaimTemplate:
+            spec:
+              storageClassName: ionos-enterprise-ssd
+              resources:
+                requests:
+                  storage: 20Gi
     kubeEtcd:
-      enabled: false
-
-    kubelet:
-      enabled: true
-      serviceMonitor:
-        metricRelabelings:
-          # Drop high cardinality labels
-          - action: labeldrop
-            regex: (uid)
-          - action: labeldrop
-            regex: (id|name)
-          - action: drop
-            sourceLabels:
-              - __name__
-            regex: (rest_client_request_duration_seconds_bucket|rest_client_request_duration_seconds_sum|rest_client_request_duration_seconds_count)
-
+      service:
+        selector:
+          component: kube-apiserver 
     kubeProxy:
       enabled: false
-
-    kubeScheduler:
-      enabled: false
-
-    kubeStateMetrics:
-      enabled: false
-
-    nodeExporter:
-      enabled: false
-
-    grafana:
-      enabled: false
-
-    ###
-    ### Prometheus operator values
-    ###
-    prometheusOperator:
-      resources:
-        requests:
-          cpu: 35m
-          memory: 273M
-        limits:
-          memory: 326M
-
-      prometheusConfigReloader:
-        # resource config for prometheusConfigReloader
-        resources:
-          requests:
-            cpu: 5m
-            memory: 32M
-          limits:
-            memory: 32M
-
-    ###
-    ### Prometheus instance values
-    ###
     prometheus:
+      route:
+        main:
+          enabled: true
+          hostnames:
+            - prometheus.samcloud.online
+          parentRefs:
+            - name: internal
+              namespace: kube-system
+              sectionName: https
       prometheusSpec:
-        externalUrl: https://prometheus.hemma.dev
-        version: v2.55.1 # override 'unsupported Prometheus version' error
         image:
           registry: docker.io
           repository: prompp/prompp
-          tag: 0.6.3
+          tag: 2.53.2-0.4.0
         securityContext:
           runAsNonRoot: true
           runAsUser: 64535
           runAsGroup: 64535
           fsGroup: 64535
-        alertingEndpoints:
-          - namespace: observability
-            name: alertmanager
-            port: 9093
-            apiVersion: v2
         podMonitorSelectorNilUsesHelmValues: false
         probeSelectorNilUsesHelmValues: false
-        replicas: 1
-        replicaExternalLabelName: "__replica__" # must match with thanos value `.query.replicaLabel[0]`
+        ruleSelectorNilUsesHelmValues: false
+        scrapeConfigSelectorNilUsesHelmValues: false
+        serviceMonitorSelectorNilUsesHelmValues: false
+        retention: 14d
+        retentionSize: 5GB
         resources:
           requests:
             cpu: 100m
           limits:
-            memory: 3000M
-        retention: 14d
-        retentionSize: 50GB
-        ruleSelectorNilUsesHelmValues: false
-        scrapeConfigSelectorNilUsesHelmValues: false
-        scrapeInterval: 1m # Must match interval in Grafana Helm chart
-        serviceMonitorSelectorNilUsesHelmValues: false
+            memory: 256Mi
         storageSpec:
           volumeClaimTemplate:
             spec:
-              storageClassName: ceph-block
+              storageClassName: ionos-enterprise-ssd
               resources:
                 requests:
-                  storage: 55Gi
+                  storage: 10Gi
+    prometheus-node-exporter:
+      fullnameOverride: node-exporter
+      prometheus:
+        monitor:
+          enabled: true
+          relabelings:
+            - action: replace
+              regex: (.*)
+              replacement: $1
+              sourceLabels:
+                - __meta_kubernetes_pod_node_name
+              targetLabel: kubernetes_node
+    kube-state-metrics:
+      fullnameOverride: kube-state-metrics
+      metricLabelsAllowlist:
+        - pods=[*]
+        - deployments=[*]
+        - persistentvolumeclaims=[*]
+      prometheus:
+        monitor:
+          enabled: true
+          relabelings:
+            - action: replace
+              regex: (.*)
+              replacement: $1
+              sourceLabels:
+                - __meta_kubernetes_pod_node_name
+              targetLabel: kubernetes_node
+    grafana:
+      enabled: false
+      forceDeployDashboards: true
+    additionalPrometheusRulesMap:
+      dockerhub-rules:
+        groups:
+          - name: dockerhub
+            rules:
+              - alert: DockerhubRateLimitRisk
+                annotations:
+                  summary: Kubernetes cluster Dockerhub rate limit risk
+                expr: count(time() - container_last_seen{image=~"(docker.io).*",container!=""} < 30) > 100
+                labels:
+                  severity: critical
+      oom-rules:
+        groups:
+          - name: oom
+            rules:
+              - alert: OomKilled
+                annotations:
+                  summary: Container {{ $labels.container }} in pod {{ $labels.namespace }}/{{ $labels.pod }} has been OOMKilled {{ $value }} times in the last 10 minutes.
+                expr: (kube_pod_container_status_restarts_total - kube_pod_container_status_restarts_total offset 10m >= 1) and ignoring (reason) min_over_time(kube_pod_container_status_last_terminated_reason{reason="OOMKilled"}[10m]) == 1
+                labels:
+                  severity: critical
