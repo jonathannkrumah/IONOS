@@ -35,7 +35,7 @@ module "eks" {
   version = "~> 20.0"  # Compatible with AWS provider 5.x
 
   cluster_name                   = var.cluster_name
-  cluster_version                = "1.34"
+  cluster_version                = "1.33"
   cluster_endpoint_public_access = true
 
   vpc_id                   = module.vpc.vpc_id
@@ -69,18 +69,18 @@ module "eks" {
 
   # EKS Managed Node Groups
   eks_managed_node_groups = {
-    main = {
-      name            = "main"
-      use_name_prefix = false
+    main_v2 = {
+      name            = "main-v2"
+      use_name_prefix = true  # Allow Terraform to create new node group with unique name
 
       subnet_ids = module.vpc.private_subnets
 
       min_size     = 1
-      max_size     = 5
+      max_size     = 20
       desired_size = 3
 
       capacity_type  = "ON_DEMAND"
-      instance_types = ["t3.micro"]  
+      instance_types = ["t3.small"]  
       # Block Device Mappings
       disk_size = 20
       disk_type = "gp3"
@@ -109,6 +109,8 @@ module "eks" {
     Terraform   = "true"
     Environment = "dev"
   }
+
+  depends_on = [ module.vpc ]
 }
 
 resource "aws_kms_key" "eks" {
@@ -118,6 +120,10 @@ resource "aws_kms_key" "eks" {
   
   tags = {
     Name = "${var.cluster_name}"
+  }
+
+  lifecycle {
+    prevent_destroy = false
   }
 }
 
@@ -159,7 +165,9 @@ resource "aws_iam_policy" "cluster_autoscaler" {
           "autoscaling:DescribeTags",
           "autoscaling:SetDesiredCapacity",
           "autoscaling:TerminateInstanceInAutoScalingGroup",
-          "ec2:DescribeLaunchTemplateVersions"
+          "ec2:DescribeLaunchTemplateVersions",
+          "ec2:DescribeInstanceTypes",
+          "eks:DescribeNodegroup"
         ]
         Resource = "*"
       }
