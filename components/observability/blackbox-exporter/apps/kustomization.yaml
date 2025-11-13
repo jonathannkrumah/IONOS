@@ -1,4 +1,4 @@
 resources:
 - ocirepository.yaml
 - helmrelease.yaml
-- probes.yaml
+- probe.yaml
