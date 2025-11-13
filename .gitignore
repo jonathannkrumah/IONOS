@@ -5,7 +5,7 @@
 **/*.tfstate.*
 **/*.tfvars
 **/.terraform.tfstate.lock.info
-**/.op-secret.yaml
+- op-secret.yaml
 
 # Crash log files
 crash.log
