@@ -2,3 +2,4 @@ resources:
 # - auth-generic-oauth-secret.yaml
 - kube-prometheus-stack
 - blackbox-exporter
+- alloy 
