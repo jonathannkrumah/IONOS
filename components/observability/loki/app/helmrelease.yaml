@@ -1,93 +1,89 @@
 ---
-# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/helm.toolkit.fluxcd.io/helmrelease_v2.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: loki
   namespace: observability
 spec:
-  interval: 1h
-  chartRef:
-    kind: OCIRepository
-    name: loki
-    namespace: flux-system
-  install:
-    crds: Skip
-    remediation:
-      retries: -1
-  upgrade:
-    cleanupOnFail: true
-    crds: Skip
-    remediation:
-      retries: 3
+  interval: 5m
+  chart:
+    spec:
+      chart: loki
+      version: 6.46.0
+      sourceRef:
+        kind: HelmRepository
+        name: grafana-charts
+        namespace: flux-system
+      interval: 5m
+  dependsOn:
+    - name: longhorn
+      namespace: longhorn-system
+    - name: kube-prometheus-stack
+      namespace: monitoring
   values:
     deploymentMode: SingleBinary
     loki:
+      image:
+        repository: grafana/loki
+        tag: 3.5.7@sha256:0eaee7bf39cc83aaef46914fb58f287d4f4c4be6ec96b86c2ed55719a75e49c8
       auth_enabled: false
-      analytics:
-        reporting_enabled: false
-      commonConfig:
-        replication_factor: 1
-      compactor:
-        working_directory: /var/loki/compactor/retention
-        delete_request_store: filesystem
-        retention_enabled: true
-      ingester:
-        chunk_encoding: snappy
-      limits_config:
-        retention_period: 14d
-      server:
-        grpc_server_max_recv_msg_size: 10485760 # 10 MiB
-        grpc_server_max_send_msg_size: 10485760 # 10 MiB
-        log_level: info
       storage:
         type: filesystem
       schemaConfig:
         configs:
-          - from: "2024-04-01" # quote
-            store: tsdb
+          - from: "2024-04-01"
             object_store: filesystem
+            store: tsdb
             schema: v13
             index:
-              prefix: loki_index_
+              prefix: index_
               period: 24h
-      structuredConfig:
-        ruler:
-          enable_api: true
-          enable_alertmanager_v2: true
-          alertmanager_url: http://alertmanager-operated.observability.svc.cluster.local:9093
-          storage:
-            type: local
-            local:
-              directory: /rules
-          rule_path: /rules/fake
-    singleBinary:
-      replicas: 1
-      persistence:
-        enabled: true
-        storageClass: ionos-enterprise-ssd
-        size: 50Gi
-    gateway:
-      replicas: 0
-    backend:
+      commonConfig:
+        replication_factor: 1
+      limits_config:
+        retention_period: 7d
+      rulerConfig:
+        alertmanager_url: http://kube-prometheus-stack-alertmanager:9093
+    write:
       replicas: 0
     read:
       replicas: 0
-    write:
+    backend:
       replicas: 0
-    chunksCache:
-      enabled: false
-    resultsCache:
-      enabled: false
-    lokiCanary:
-      enabled: false
+    singleBinary:
+      replicas: 1
+      persistence:
+        size: 8Gi
+        storageClass: longhorn-xfs
     test:
       enabled: false
-    sidecar:
-      image:
-        repository: ghcr.io/home-operations/k8s-sidecar
-        tag: 1.30.10@sha256:dd3b1f0c4e6b4512b2deb50c58acf65fd0f0927120a59a95eec854d32a6c9ce3
-      enableUniqueFilenames: true
-      rules:
-        searchNamespace: ALL
-        folder: /rules/fake
+    monitoring:
+      selfMonitoring:
+        enabled: false
+      lokiCanary:
+        enabled: false
+    resultsCache:
+      enabled: false
+    chunksCache:
+      enabled: false
+# extraObjects:
+# - apiVersion: v1
+#   kind: ConfigMap
+#   metadata:
+#     name: loki-alerting-rules
+#   data:
+#     loki-alerting-rules.yaml: |-
+#       groups:
+#         #
+#         # PostgreSQL
+#         #
+#         - name: postgresql
+#           rules:
+#             - alert: PostgreSQLReadOnlyFS
+#               expr: sum by (app) (count_over_time({app_kubernetes_io_name="postgresql"} |~ "Read-only file system"[2m])) > 0
+#               for: 0m
+#               labels:
+#                 severity: critical
+#                 category: logs
+#               annotations:
+#                 summary: "PostgreSQL has read-only file system"
