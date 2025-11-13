@@ -1,6 +1,6 @@
 resources:
 # - auth-generic-oauth-secret.yaml
-- kube-prometheus-stack
+# - kube-prometheus-stack
 - blackbox-exporter
 - alloy 
 - loki
