@@ -1,4 +1,4 @@
 resources:
 - cert-manager
-- observability
+# - observability
 - security
