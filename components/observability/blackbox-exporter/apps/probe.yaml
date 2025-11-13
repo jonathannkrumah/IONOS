@@ -4,6 +4,7 @@ apiVersion: monitoring.coreos.com/v1
 kind: Probe
 metadata:
   name: devices
+  namespace: observability
 spec:
   module: icmp
   prober:
@@ -18,6 +19,7 @@ apiVersion: monitoring.coreos.com/v1
 kind: Probe
 metadata:
   name: nfs
+  namespace: observability
 spec:
   module: tcp_connect
   prober:
