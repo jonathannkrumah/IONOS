@@ -1,5 +1,5 @@
 resources:
 - ocirepository.yaml
-- cm-dashboards.yaml
+- cm-dashboard.yaml
 - cm-datasource.yaml
 - helmrelease.yaml
