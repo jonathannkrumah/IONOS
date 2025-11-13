@@ -3,3 +3,4 @@ resources:
 - kube-prometheus-stack
 - blackbox-exporter
 - alloy 
+- loki
