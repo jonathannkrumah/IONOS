@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: my-openebs-pv
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Delete
+  storageClassName: openebs-standard
+  csi:
+    driver: openebs.io/provisioner-iscsi
+    fsType: ext4
+    volumeHandle: my-openebs-vol
