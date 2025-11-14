@@ -12,7 +12,7 @@ spec:
       chart: app-template
       version: 4.1.0
       sourceRef:
-        kind: OCIRepository
+        kind: HelmRepository
         name: app-template
         namespace: flux-system
   install:
