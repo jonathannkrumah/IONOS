@@ -48,7 +48,7 @@ spec:
       ignoreUnfixed: true
 
       server:
-        storageClass: openebs-hostpath
+        storageClass: openebs-cstor-disk 
         storage: 10Gi
 
     operator:

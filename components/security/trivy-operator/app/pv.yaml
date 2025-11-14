@@ -8,7 +8,7 @@ spec:
   accessModes:
     - ReadWriteOnce
   persistentVolumeReclaimPolicy: Delete
-  storageClassName: openebs-standard
+  storageClassName: openebs-hostPath
   csi:
     driver: openebs.io/provisioner-iscsi
     fsType: ext4
