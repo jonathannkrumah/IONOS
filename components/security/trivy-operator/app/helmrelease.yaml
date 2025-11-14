@@ -26,24 +26,36 @@ spec:
     kind: OCIRepository
     name: trivy-operator
     namespace: flux-system
+
   install:
     crds: CreateReplace
     remediation:
       retries: -1
+
   upgrade:
     crds: CreateReplace
     cleanupOnFail: true
     remediation:
       retries: 3
+
   values:
     serviceMonitor:
       enabled: true
+
+    vulnerabilityReports:
+      create: true
+
+    configAuditReports:
+      create: true
     trivy:
       ignoreUnfixed: true
-    service:
-      headless: false
+
     operator:
       builtInTrivyServer: true
-    storageClass:
-      create: false
-      name: openebs-hostpath
+    trivyOperator:
+      trivy:
+        server:
+          storageClassName: openebs-hostpath
+          storage: 10Gi  
+    service:
+      headless: false
