@@ -1,0 +1,124 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: onepassword-connect
+  namespace: security
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: onepassword-connect
+  template:
+    metadata:
+      labels:
+        app: onepassword-connect
+      annotations:
+        reloader.stakater.com/auto: "true"
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
+        fsGroupChangePolicy: OnRootMismatch
+      containers:
+      - name: connect-api
+        image: docker.io/1password/connect-api:1.7.3@sha256:0601c7614e102eada268dbda6ba4b5886ce77713be2c332ec6a2fd0f028484ba
+        env:
+        - name: XDG_DATA_HOME
+          value: /config
+        - name: OP_HTTP_PORT
+          value: "8080"
+        - name: OP_BUS_PORT
+          value: "11220"
+        - name: OP_BUS_PEERS
+          value: localhost:11221
+        - name: OP_SESSION
+          valueFrom:
+            secretKeyRef:
+              name: op-credentials
+              key: 1password-credentials.json
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+        livenessProbe:
+          httpGet:
+            path: /heartbeat
+            port: 8080
+          initialDelaySeconds: 15
+          periodSeconds: 30
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 15
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          requests:
+            cpu: 10m
+            memory: 128Mi
+          limits:
+            memory: 256Mi
+        volumeMounts:
+        - name: config
+          mountPath: /config
+      - name: connect-sync
+        image: docker.io/1password/connect-sync:1.7.3@sha256:2f17621c7eb27bbcb1f86bbc5e5a5198bf54ac3b9c2ffac38064d03c932b07d5
+        env:
+        - name: XDG_DATA_HOME
+          value: /config
+        - name: OP_HTTP_PORT
+          value: "8081"
+        - name: OP_BUS_PORT
+          value: "11221"
+        - name: OP_BUS_PEERS
+          value: localhost:11220
+        - name: OP_SESSION
+          valueFrom:
+            secretKeyRef:
+              name: op-credentials
+              key: 1password-credentials.json
+        ports:
+        - containerPort: 8081
+          name: sync
+          protocol: TCP
+        livenessProbe:
+          httpGet:
+            path: /heartbeat
+            port: 8081
+          initialDelaySeconds: 15
+          periodSeconds: 30
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8081
+          initialDelaySeconds: 15
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          requests:
+            cpu: 10m
+            memory: 128Mi
+          limits:
+            memory: 256Mi
+        volumeMounts:
+        - name: config
+          mountPath: /config
+      volumes:
+      - name: config
+        emptyDir: {}

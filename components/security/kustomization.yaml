@@ -1,5 +1,4 @@
 resources:
 - namespace.yaml
 - external-secret
-# Temporarily disabled - OCI registry auth issues
-# - onepassword
+- onepassword
