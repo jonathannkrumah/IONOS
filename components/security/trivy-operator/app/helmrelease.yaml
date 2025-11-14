@@ -44,3 +44,6 @@ spec:
       headless: false
     operator:
       builtInTrivyServer: true
+    storageClass:
+      create: false
+      name: openebs-hostpath
