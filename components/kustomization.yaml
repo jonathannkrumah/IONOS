@@ -2,3 +2,4 @@ resources:
 - cert-manager
 # - observability
 - security
+- openebs
