@@ -1,3 +1,4 @@
 resources:
 - jetstack.yaml
 - kube-prometheus-stack.yaml
+- external-secrets.yaml
