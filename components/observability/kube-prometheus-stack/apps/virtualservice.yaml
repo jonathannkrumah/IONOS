@@ -1,40 +1,28 @@
----
-# yaml-language-server: $schema=https://kubernetes-schemas.raspbernetes.com/networking.istio.io/virtualservice_v1beta1.json
-apiVersion: networking.istio.io/v1beta1
-kind: VirtualService
+apiVersion: v1
+kind: Service
 metadata:
-  name: alert-manager
+  name: prometheus-lb
   namespace: observability
 spec:
-  hosts:
-    - 'alert-manager.${CLUSTER_DOMAIN}'
-  # gateways:
-  #   - istio-ingress/istio-ingressgateway
-  http:
-    - match:
-        - port: 443
-      route:
-        - destination:
-            port:
-              number: 9093
-            host: alertmanager-operated.observability.svc.cluster.local
+  type: LoadBalancer
+  selector:
+    app.kubernetes.io/name: prometheus
+  ports:
+    - port: 9090
+      targetPort: 9090
+      protocol: TCP
+
 ---
-# yaml-language-server: $schema=https://kubernetes-schemas.raspbernetes.com/networking.istio.io/virtualservice_v1beta1.json
-apiVersion: networking.istio.io/v1beta1
-kind: VirtualService
+apiVersion: v1
+kind: Service
 metadata:
-  name: prometheus
+  name: alertmanager-lb
   namespace: observability
 spec:
-  hosts:
-    - 'prometheus.${CLUSTER_DOMAIN}'
-  # gateways:
-  #   - istio-ingress/istio-ingressgateway
-  http:
-    - match:
-        - port: 443
-      route:
-        - destination:
-            port:
-              number: 9090
-            host: kube-prometheus-stack-prometheus.observability.svc.cluster.local
+  type: LoadBalancer
+  selector:
+    app.kubernetes.io/name: alertmanager
+  ports:
+    - port: 9093
+      targetPort: 9093
+      protocol: TCP
