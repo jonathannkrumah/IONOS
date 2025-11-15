@@ -1,18 +1,14 @@
 ---
 # yaml-language-server: $schema=https://kube-schemas.pages.dev/source.toolkit.fluxcd.io/ocirepository_v1.json
-apiVersion: source.toolkit.fluxcd.io/v1
-kind: OCIRepository
+apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: HelmRepository
 metadata:
   name: kube-prometheus-stack
   namespace: flux-system
 spec:
-  interval: 5m
-  layerSelector:
-    mediaType: application/vnd.cncf.helm.chart.content.v1.tar+gzip
-    operation: copy
-  ref:
-    tag: 79.5.0
-  url: oci://ghcr.io/prometheus-community/charts/kube-prometheus-stack
+  interval: 10m
+  url: https://prometheus-community.github.io/helm-charts
+
 ---
 # yaml-language-server: $schema=https://kube-schemas.pages.dev/helm.toolkit.fluxcd.io/helmrelease_v2.json
 apiVersion: helm.toolkit.fluxcd.io/v2
@@ -27,7 +23,7 @@ spec:
       chart: kube-prometheus-stack
       version: "79.5.0"
       sourceRef:
-        kind: OCIRepository
+        kind: HelmRepository
         name: kube-prometheus-stack
         namespace: flux-system
   install:
@@ -38,7 +34,7 @@ spec:
   values:
     prometheus:
       service:
-        type: LoadBalancer       # Expose Prometheus externally
+        type: LoadBalancer
         port: 9090
       prometheusSpec:
         storageSpec:
@@ -51,7 +47,7 @@ spec:
                   storage: 10Gi
     alertmanager:
       service:
-        type: LoadBalancer       # Expose Alertmanager externally
+        type: LoadBalancer
         port: 9093
       alertmanagerSpec:
         storage:
@@ -65,7 +61,7 @@ spec:
     grafana:
       enabled: true
       service:
-        type: LoadBalancer       # Optional: expose Grafana externally
+        type: LoadBalancer
         port: 3000
       persistence:
         enabled: true
