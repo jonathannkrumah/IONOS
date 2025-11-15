@@ -3,3 +3,5 @@ resources:
 - cm-dashboard.yaml
 - cm-datasource.yaml
 - helmrelease.yaml
+- hr-promtail.yaml
+- prometheus-rules.yaml

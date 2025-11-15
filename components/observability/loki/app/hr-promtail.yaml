@@ -1,0 +1,30 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: promtail
+  namespace: observability
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: promtail
+      version: 6.17.1
+      sourceRef:
+        kind: HelmRepository
+        name: grafana
+        namespace: flux-system
+      interval: 5m
+  dependsOn:
+    - name: loki
+  values:
+    image:
+      repository: grafana/promtail
+      tag: 3.5.7@sha256:086e4e85d2eb383fb04ea83c0f5074da81df56e415062ca888dba426abd8dfa5
+    serviceMonitor:
+      enabled: true
+    tolerations:
+      - effect: NoSchedule
+        operator: Exists
+      - effect: NoExecute
+        operator: Exists
