@@ -58,7 +58,7 @@ spec:
               resources:
                 requests:
                   storage: 5Gi
-
+#grafana configuration
     grafana:
       enabled: true
       service:
