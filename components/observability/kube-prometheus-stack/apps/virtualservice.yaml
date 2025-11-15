@@ -8,8 +8,8 @@ metadata:
 spec:
   hosts:
     - 'alert-manager.${CLUSTER_DOMAIN}'
-  gateways:
-    - istio-ingress/istio-ingressgateway
+  # gateways:
+  #   - istio-ingress/istio-ingressgateway
   http:
     - match:
         - port: 443
@@ -28,8 +28,8 @@ metadata:
 spec:
   hosts:
     - 'prometheus.${CLUSTER_DOMAIN}'
-  gateways:
-    - istio-ingress/istio-ingressgateway
+  # gateways:
+  #   - istio-ingress/istio-ingressgateway
   http:
     - match:
         - port: 443

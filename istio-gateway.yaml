@@ -1,0 +1,24 @@
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: istio-ingressgateway
+  namespace: istio-ingress
+spec:
+  selector:
+    istio: ingressgateway  # This must match the label on the ingressgateway pod
+  servers:
+    - port:
+        number: 443
+        name: https
+        protocol: HTTPS
+      tls:
+        mode: SIMPLE
+        credentialName: istio-ingress-cert  # Must exist in istio-ingress as a secret
+      hosts:
+        - "*.jonatech.online"
+    - port:
+        number: 80
+        name: http
+        protocol: HTTP
+      hosts:
+        - "*"
