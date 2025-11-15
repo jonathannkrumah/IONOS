@@ -58,6 +58,7 @@ spec:
               resources:
                 requests:
                   storage: 5Gi
+
     grafana:
       enabled: true
       service:
@@ -68,3 +69,4 @@ spec:
         storageClassName: openebs-hostpath
         accessModes: ["ReadWriteOnce"]
         size: 5Gi
+        annotations: {}
