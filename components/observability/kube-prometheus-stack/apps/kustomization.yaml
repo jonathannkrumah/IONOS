@@ -7,7 +7,6 @@ resources:
   # - ./externalsecret.yaml
   - ./helmrelease.yaml
   - ./grafanadashboard.yaml
-  - ./istio.yaml
   - ./virtualservice.yaml
   
   
