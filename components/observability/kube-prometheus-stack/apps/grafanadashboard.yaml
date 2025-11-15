@@ -4,6 +4,7 @@ apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
 metadata:
   name: kubernetes-api-server
+  namespace: observability
 spec:
   allowCrossNamespaceImport: true
   instanceSelector:
@@ -16,6 +17,7 @@ apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
 metadata:
   name: kubernetes-coredns
+  namespace: observability
 spec:
   allowCrossNamespaceImport: true
   instanceSelector:
@@ -28,6 +30,7 @@ apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
 metadata:
   name: kubernetes-global
+  namespace: observability
 spec:
   allowCrossNamespaceImport: true
   instanceSelector:
@@ -40,6 +43,7 @@ apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
 metadata:
   name: kubernetes-namespaces
+  namespace: observability
 spec:
   allowCrossNamespaceImport: true
   instanceSelector:
@@ -52,6 +56,7 @@ apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
 metadata:
   name: kubernetes-nodes
+  namespace: observability
 spec:
   allowCrossNamespaceImport: true
   instanceSelector:
@@ -64,6 +69,7 @@ apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
 metadata:
   name: kubernetes-pods
+  namespace: observability
 spec:
   allowCrossNamespaceImport: true
   instanceSelector:
@@ -76,6 +82,7 @@ apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
 metadata:
   name: kubernetes-volumes
+  namespace: observability
 spec:
   allowCrossNamespaceImport: true
   instanceSelector:
@@ -88,6 +95,7 @@ apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
 metadata:
   name: node-exporter-full
+  namespace: observability
 spec:
   allowCrossNamespaceImport: true
   instanceSelector:
@@ -103,6 +111,7 @@ apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
 metadata:
   name: prometheus
+  namespace: observability
 spec:
   allowCrossNamespaceImport: true
   instanceSelector:
@@ -128,6 +137,7 @@ apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
 metadata:
   name: kubernetes-pvc
+  namespace: observability
 spec:
   allowCrossNamespaceImport: true
   instanceSelector:
