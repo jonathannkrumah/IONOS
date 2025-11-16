@@ -75,9 +75,9 @@ module "eks" {
 
       subnet_ids = module.vpc.private_subnets
 
-      min_size     = 1
+      min_size     = 2
       max_size     = 20
-      desired_size = 3
+      desired_size = 9
 
       capacity_type  = "ON_DEMAND"
       instance_types = ["t3.small"]  
