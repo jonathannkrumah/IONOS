@@ -4,5 +4,5 @@ resources:
 # OnePassword Connect disabled - requires 1password-credentials.json from 1Password Connect setup
 # To enable: Set up 1Password Connect at https://my.1password.com → Integrations → 1Password Connect
 # Then create secret: kubectl create secret generic op-credentials --from-file=1password-credentials.json=<file> --from-literal=token=<token> -n security
-- onepassword
+# - onepassword
 - trivy-operator
