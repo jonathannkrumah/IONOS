@@ -11,14 +11,15 @@
 
 # components/wordpress/bitnami-oci.yaml
 # components/wordpress/bitnami-helmrepository.yaml
+# components/wordpress/bitnami-helmrepository.yaml
 apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
 metadata:
   name: bitnami
   namespace: flux-system
 spec:
-  type: oci  # This is the key change
-  url: https://registry-1.docker.io/bitnamicharts
+  type: oci
+  url: oci://registry-1.docker.io/bitnamicharts
   interval: 1h
 ---
 # yaml-language-server: $schema=https://raw.githubusercontent.com/fluxcd-community/flux2-schemas/main/helmrelease-helm-v2.json
