@@ -1,0 +1,4 @@
+resources:
+- external-secrets.yaml
+- helmrelease.yaml
+- httproute.yaml

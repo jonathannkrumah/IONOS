@@ -1,0 +1,42 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: postgresql-cluster
+  namespace: cloudnative-pg
+spec:
+  instances: 3
+  primaryUpdateStrategy: unsupervised
+
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: topology.kubernetes.io/zone
+                operator: In
+                values:
+                  - us-east-1b
+
+  storage:
+    storageClass:  cloudnativepg-sc
+    size: 10Gi
+  
+  superuserSecret:
+    name: postgresql-superuser
+  
+  bootstrap:
+    initdb:
+      database: postgres
+      owner: postgres
+      
+  backup:
+    retentionPolicy: "30d"
+      
+  postgresql:
+    parameters:
+      max_connections: "100"
+      shared_buffers: "256MB"
+  
+  monitoring:
+    enablePodMonitor: true
+
