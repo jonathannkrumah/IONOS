@@ -51,8 +51,8 @@ spec:
         primary:
         persistence:
           enabled: true
-          storageClass: "gp3"
-          size: 8Gi 
+          size: 20Gi
+          storageClass: gp3 
           accessModes:
             - ReadWriteOnce
 
