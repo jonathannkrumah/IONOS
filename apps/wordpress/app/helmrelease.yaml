@@ -46,9 +46,15 @@ spec:
       auth:
         rootPasswordExistingSecret: wordpress-secret
         rootPasswordKey: mariadb-root-password
-
         passwordExistingSecret: wordpress-secret
         passwordKey: mariadb-password
+        primary:
+        persistence:
+          enabled: true
+          storageClass: "gp3"
+          size: 8Gi 
+          accessModes:
+            - ReadWriteOnce
 
     # WordPress credentials from secret
     wordpressPassword: ""
