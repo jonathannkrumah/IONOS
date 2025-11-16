@@ -1,13 +1,24 @@
 ---
 # yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/source.toolkit.fluxcd.io/ocirepository_v1.json
+# apiVersion: source.toolkit.fluxcd.io/v1beta2
+# kind: HelmRepository
+# metadata:
+#   name: bitnami
+#   namespace: flux-system
+# spec:
+#   interval: 10m
+#   url: https://charts.bitnami.com/bitnami
+
+# components/wordpress/bitnami-oci.yaml
 apiVersion: source.toolkit.fluxcd.io/v1beta2
-kind: HelmRepository
+kind: OCIRepository
 metadata:
   name: bitnami
   namespace: flux-system
 spec:
-  interval: 10m
-  url: https://charts.bitnami.com/bitnami
+  interval: 1h
+  url: oci://registry-1.docker.io/bitnamicharts
+  provider: generic
 ---
 # yaml-language-server: $schema=https://raw.githubusercontent.com/fluxcd-community/flux2-schemas/main/helmrelease-helm-v2.json
 apiVersion: helm.toolkit.fluxcd.io/v2
@@ -22,7 +33,7 @@ spec:
       chart: wordpress
       version: 24.1.0
       sourceRef:
-        kind: HelmRepository
+        kind: OCIRepository
         name: bitnami
         namespace: flux-system
       interval: 1m
